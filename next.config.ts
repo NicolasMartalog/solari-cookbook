@@ -1,7 +1,19 @@
 import type { NextConfig } from "next"
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["@solarisdk/sdk", "@solarisdk/browser", "@solarisdk/core"],
+  serverExternalPackages: [
+    "@solarisdk/sdk",
+    "@solarisdk/browser",
+    "@solarisdk/core",
+    "patchright-core",
+    "patchright",
+  ],
+  outputFileTracingIncludes: {
+    "/api/runs": [
+      "./node_modules/patchright-core/**/*",
+      "./node_modules/@solarisdk/**/*",
+    ],
+  },
 }
 
 export default nextConfig

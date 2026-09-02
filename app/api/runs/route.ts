@@ -2,10 +2,24 @@ import { after } from "next/server"
 import { createRun, listSeededRuns, updateRun } from "@/src/lib/db"
 import { rateLimitLive, rateLimitRepo, tryAcquireRepoLock } from "@/src/lib/locks"
 import { parseSource } from "@/src/lib/parse-source"
-import { runJob } from "@/src/lib/run-job"
 
 export const runtime = "nodejs"
 export const maxDuration = 300
+
+async function startJob(id: string) {
+  try {
+    const { runJob } = await import("@/src/lib/run-job")
+    await runJob(id)
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    console.error(err)
+    await updateRun(id, {
+      status: "done",
+      verdict: "INCONCLUSIVE",
+      message,
+    })
+  }
+}
 
 function clientIp(req: Request) {
   return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local"
@@ -17,6 +31,16 @@ function resolveRelative(source: string, origin: string) {
 }
 
 export async function POST(req: Request) {
+  try {
+    return await postRun(req)
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unable to start a run"
+    console.error(err)
+    return Response.json({ error: message }, { status: 500 })
+  }
+}
+
+async function postRun(req: Request) {
   const origin = new URL(req.url).origin
   const ip = clientIp(req)
   const body = (await req.json().catch(() => null)) as { source?: string } | null
@@ -61,9 +85,9 @@ export async function POST(req: Request) {
           : { fixture: parsed.name, logs: [] },
     })
     if (process.env.VERCEL) {
-      await runJob(run.id).catch((err) => console.error(err))
+      await startJob(run.id).catch((err) => console.error(err))
     } else {
-      after(() => runJob(run.id).catch((err) => console.error(err)))
+      after(() => startJob(run.id).catch((err) => console.error(err)))
     }
     return Response.json({ id: run.id })
   }
@@ -73,9 +97,9 @@ export async function POST(req: Request) {
   }
   const run = await createRun({ kind: "url", source: parsed.href })
   if (process.env.VERCEL) {
-    await runJob(run.id).catch((err) => console.error(err))
+    await startJob(run.id).catch((err) => console.error(err))
   } else {
-    after(() => runJob(run.id).catch((err) => console.error(err)))
+    after(() => startJob(run.id).catch((err) => console.error(err)))
   }
   return Response.json({ id: run.id })
 }
