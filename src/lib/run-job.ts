@@ -1,17 +1,12 @@
-import { readFileSync } from "node:fs"
-import { join } from "node:path"
 import { Solari } from "@solarisdk/browser"
 import { SolariClient } from "@solarisdk/sdk"
 import { BootError, bootRepo, bootStaticFiles } from "./boot"
 import { getRun, updateRun } from "./db"
 import { requireSolariKey } from "./env"
+import { fixtureHtml } from "./fixture-html"
 import type { FixtureName } from "./parse-source"
 import { decideVerdict } from "./verdict"
 import { walkUrl } from "./walk"
-
-function fixtureHtml(name: FixtureName): string {
-  return readFileSync(join(process.cwd(), "demo", name, "index.html"), "utf8")
-}
 
 export async function runJob(id: string) {
   const run = await getRun(id)

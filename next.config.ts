@@ -12,6 +12,7 @@ const nextConfig: NextConfig = {
     "/api/runs": [
       "./node_modules/patchright-core/**/*",
       "./node_modules/@solarisdk/**/*",
+      "./demo/**/*",
     ],
   },
 }
