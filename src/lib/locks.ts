@@ -10,8 +10,8 @@ function prune(map: Map<string, number[]>, ip: string, windowMs: number) {
   return next
 }
 
-export function tryAcquireRepoLock(): boolean {
-  return !hasRunningGithub()
+export async function tryAcquireRepoLock(): Promise<boolean> {
+  return !(await hasRunningGithub())
 }
 
 export function rateLimitLive(ip: string): boolean {

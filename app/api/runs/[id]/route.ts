@@ -7,7 +7,7 @@ export async function GET(
   ctx: { params: Promise<{ id: string }> },
 ) {
   const { id } = await ctx.params
-  const run = getRun(id)
+  const run = await getRun(id)
   if (!run) return Response.json({ error: "not found" }, { status: 404 })
   return Response.json(run)
 }

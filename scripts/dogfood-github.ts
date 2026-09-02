@@ -35,13 +35,13 @@ async function main() {
     if (parsed.kind !== "github") {
       throw new Error(`${spec.source} is not a github URL`)
     }
-    const run = createRun({ kind: "github", source: spec.source })
-    updateRun(run.id, {
+    const run = await createRun({ kind: "github", source: spec.source })
+    await updateRun(run.id, {
       payload: { cloneUrl: parsed.cloneUrl, branch: parsed.branch, logs: [] },
     })
     console.log(`start ${run.id} ${spec.source} (want ${spec.expect})`)
     await runJob(run.id)
-    const done = getRun(run.id)
+    const done = await getRun(run.id)
     const logs = Array.isArray(done?.payload.logs) ? (done.payload.logs as string[]) : []
     console.log(
       `done ${run.id} verdict=${done?.verdict ?? "none"} want=${spec.expect} message=${done?.message ?? ""}`,

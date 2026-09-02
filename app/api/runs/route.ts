@@ -38,36 +38,44 @@ export async function POST(req: Request) {
     if (!rateLimitRepo(ip)) {
       return Response.json({ error: "Repo rate limit: 1 per hour from this IP" }, { status: 429 })
     }
-    if (!tryAcquireRepoLock()) {
-      const busy = createRun({
+    if (!(await tryAcquireRepoLock())) {
+      const busy = await createRun({
         kind: parsed.kind === "fixture" ? "fixture" : "github",
         source: raw,
       })
-      updateRun(busy.id, {
+      await updateRun(busy.id, {
         status: "busy",
         verdict: "INCONCLUSIVE",
         message: busyHint,
       })
       return Response.json({ id: busy.id, status: "busy" })
     }
-    const run = createRun({
+    const run = await createRun({
       kind: parsed.kind === "fixture" ? "fixture" : "github",
       source: raw,
     })
-    updateRun(run.id, {
+    await updateRun(run.id, {
       payload:
         parsed.kind === "github"
           ? { cloneUrl: parsed.cloneUrl, branch: parsed.branch, logs: [] }
           : { fixture: parsed.name, logs: [] },
     })
-    after(() => runJob(run.id).catch((err) => console.error(err)))
+    if (process.env.VERCEL) {
+      await runJob(run.id).catch((err) => console.error(err))
+    } else {
+      after(() => runJob(run.id).catch((err) => console.error(err)))
+    }
     return Response.json({ id: run.id })
   }
 
   if (!rateLimitLive(ip)) {
     return Response.json({ error: "Live URL rate limit: 3 per hour from this IP" }, { status: 429 })
   }
-  const run = createRun({ kind: "url", source: parsed.href })
-  after(() => runJob(run.id).catch((err) => console.error(err)))
+  const run = await createRun({ kind: "url", source: parsed.href })
+  if (process.env.VERCEL) {
+    await runJob(run.id).catch((err) => console.error(err))
+  } else {
+    after(() => runJob(run.id).catch((err) => console.error(err)))
+  }
   return Response.json({ id: run.id })
 }

@@ -14,13 +14,16 @@ function fixtureHtml(name: FixtureName): string {
 }
 
 export async function runJob(id: string) {
-  const run = getRun(id)
+  const run = await getRun(id)
   if (!run) throw new Error(`run ${id} missing`)
   const logs: string[] = []
+  let logChain = Promise.resolve()
   const onLog = (line: string) => {
     logs.push(line)
-    const cur = getRun(id)
-    updateRun(id, { payload: { ...(cur?.payload ?? {}), logs } })
+    logChain = logChain.then(async () => {
+      const cur = await getRun(id)
+      await updateRun(id, { payload: { ...(cur?.payload ?? {}), logs } })
+    })
   }
 
   const apiKey = requireSolariKey()
@@ -29,7 +32,7 @@ export async function runJob(id: string) {
   let sandbox: { kill(): Promise<void> } | undefined
 
   try {
-    updateRun(id, { status: "running" })
+    await updateRun(id, { status: "running" })
     let target = run.source
     let setup: Record<string, unknown> = {}
 
@@ -66,7 +69,8 @@ export async function runJob(id: string) {
       bootFailed: false,
       loginWall: walk.loginWall,
     })
-    updateRun(id, {
+    await logChain
+    await updateRun(id, {
       status: "done",
       verdict,
       payload: {
@@ -84,7 +88,8 @@ export async function runJob(id: string) {
     const message = err instanceof Error ? err.message : String(err)
     const extra = err instanceof BootError ? err.logs : logs.join("\n")
     onLog(message)
-    updateRun(id, {
+    await logChain
+    await updateRun(id, {
       status: "done",
       verdict: "INCONCLUSIVE",
       message,
