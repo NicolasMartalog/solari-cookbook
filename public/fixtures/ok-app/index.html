@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Ok app</title>
+  </head>
+  <body>
+    <h1>Ok app</h1>
+    <p>A working control for First User PASS fixtures.</p>
+    <button id="go" type="button">Go</button>
+    <p id="out">idle</p>
+    <script>
+      document.getElementById("go").addEventListener("click", () => {
+        document.getElementById("out").textContent = "clicked"
+      })
+    </script>
+  </body>
+</html>

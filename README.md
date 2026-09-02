@@ -1,91 +1,45 @@
-# Solari Cookbook
+# First User
 
-Short, runnable examples for [Solari](https://getsolari.com) — cloud browsers,
-sandboxes, and desktops behind one API key.
+**Paste a public GitHub repo or a live URL. A [Solari](https://getsolari.com) sandbox boots it, a recorded cloud browser is the first user, and you get a shareable PASS / FAIL / INCONCLUSIVE receipt.**
 
-Every example in this repo is a complete program you can run in under a minute.
-They are deliberately small: one idea each, no framework, no scaffolding to read
-past. Copy one into your project and change the parts you care about.
+[Live app](#) · [PASS receipt](https://github.com/NicolasMartalog/solari-cookbook) · [FAIL receipt](https://github.com/NicolasMartalog/solari-cookbook)
 
-## Examples
+Fork of [solari-sdk/solari-cookbook](https://github.com/solari-sdk/solari-cookbook) for the [Pinetree Research intern](https://x.com/harrychow_/status/2094437473912844480) challenge. Cookbook programs stay in `examples/`.
 
-### Cloud browser
+## Try it
 
-| Example | Language | What it shows |
-| --- | --- | --- |
-| [browser-quickstart-ts](examples/browser-quickstart-ts) | TypeScript | Launch a browser, open a page, read it |
-| [browser-quickstart-py](examples/browser-quickstart-py) | Python | Launch a browser, open a page, read it |
-| [browser-stealth-proxy-ts](examples/browser-stealth-proxy-ts) | TypeScript | Stealth mode + residential proxy egress |
-| [browser-profiles-ts](examples/browser-profiles-ts) | TypeScript | Log in once, reuse the session forever |
-| [browser-session-recording-py](examples/browser-session-recording-py) | Python | Record a session, download the replay |
+Open the live app, or these finished runs (no credits):
 
-### Sandbox
+- **PASS** — working fixture, first control did something: `/r/12d6ba07-1f3e-4332-92b5-b382116a640f`
+- **FAIL** — broken button, first control did nothing: `/r/b25bb6a0-5bcc-4c51-83ac-cce5412bbfaa`
 
-| Example | Language | What it shows |
-| --- | --- | --- |
-| [sandbox-quickstart-ts](examples/sandbox-quickstart-ts) | TypeScript | Run a command, write and read files |
-| [sandbox-code-interpreter-py](examples/sandbox-code-interpreter-py) | Python | Stateful Python kernel for agent loops |
-| [sandbox-port-preview-ts](examples/sandbox-port-preview-ts) | TypeScript | Expose a server in the VM on a public URL |
+Public GitHub fixtures you can paste (uses a sandbox):
 
-### Desktop
+- PASS: `https://github.com/NicolasMartalog/first-user-ok-app`
+- FAIL: `https://github.com/NicolasMartalog/first-user-dead-button`
 
-| Example | Language | What it shows |
-| --- | --- | --- |
-| [desktop-computer-use-py](examples/desktop-computer-use-py) | Python | Screenshot, click, and type on a Linux GUI |
+## Loop
 
-## Running an example
+1. **Paste** a `github.com/owner/repo` or a public `http(s)` URL. Private and localhost hosts are rejected.
+2. **Boot** — Solari clones the repo in a microVM, installs, starts it, and exposes `previewUrl`. Untrusted code never runs on the Next.js server.
+3. **Watch** — a recorded Solari browser opens the preview, screenshots, and clicks the first real control.
+4. **Receipt** — `/r/:id` keeps our screenshots after the preview token expires. Verdict is locked: **PASS** only if it loaded, had content, a control did something, and there were no uncaught page errors / 5xx / dead primary buttons.
 
-Each directory is self-contained.
+## Run locally
 
 ```bash
-git clone https://github.com/solari-sdk/solari-cookbook.git
-cd solari-cookbook/examples/browser-quickstart-ts
-
-npm install                          # or: pip install -r requirements.txt
-export SOLARI_API_KEY=slr_live_...   # grab one at console.getsolari.com
-npm start                            # or: python main.py
+cp .env.example .env   # SOLARI_API_KEY from console.getsolari.com
+npm install
+npm test
+npm run dev
 ```
 
-One `slr_live_` key works across browsers, sandboxes, and desktops, and every
-product bills to the same balance.
+`SOLARI_API_KEY` stays in `.env` / Vercel env. It is never committed.
 
-## Which product do I want?
+Starter limits: 2 sandboxes, ~20 browsers. This app holds **one** sandbox at a time and does not retry `429 ConcurrencyLimitExceeded`. Always `sandbox.kill()` and `solari.close()`.
 
-- **Cloud browser** — you need a *web page*: scraping, testing, filling forms,
-  anything Playwright or Puppeteer would do locally. Adds stealth, managed
-  proxies, captcha solving, profiles, and session recording.
-- **Sandbox** — you need to *run code*: an LLM's Python, an untrusted build, a
-  data job. A headless microVM that boots from a snapshot in about a second.
-- **Desktop** — you need a *screen*: computer-use agents, GUI apps, anything
-  that has to be clicked. A sandbox plus X11 and a live VNC stream.
+Do not loop `npm run seed` or `npm run gate0`.
 
-## Gotchas the examples encode
+## Cookbook examples
 
-Things that cost you an afternoon if you meet them cold:
-
-- **TypeScript: call `await solari.close()`.** The browser client keeps a
-  loopback proxy open for connection retries. Skip the close and your script
-  prints its output and then hangs forever instead of exiting.
-- **Recording is per session, not per account.** Pass `recording: true` when you
-  create the session; without it the replay endpoint 404s forever. The upload is
-  async after release, so poll for ~30s before giving up.
-- **Sandbox commands are not shell-interpreted.** `run("ls -la")` looks for a
-  binary named `ls -la`. Put argv in `args`, or run `sh -c` explicitly.
-- **`kill()`, not `close()`, ends a VM.** `close()` drops your local control
-  channel; the VM keeps running until its idle timeout.
-- **`timeoutMs` is a rolling idle window**, not a hard deadline — it resets on
-  every use.
-
-## Links
-
-- Docs — [docs.getsolari.com](https://docs.getsolari.com)
-- Console — [console.getsolari.com](https://console.getsolari.com)
-- Changelog — [changelog.getsolari.com](https://changelog.getsolari.com)
-- Questions — [hello@getsolari.com](mailto:hello@getsolari.com)
-
-## Contributing
-
-New examples are welcome. Keep them small, make them run end-to-end against the
-real API, and put anything surprising in a comment right where it bites.
-
-MIT licensed.
+Unchanged from upstream. See the [Solari cookbook README](https://github.com/solari-sdk/solari-cookbook).
